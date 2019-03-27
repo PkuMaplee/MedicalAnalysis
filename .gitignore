@@ -110,3 +110,4 @@ venv.bak/
 **backup
 **analysis
 **data
+*.pyc
