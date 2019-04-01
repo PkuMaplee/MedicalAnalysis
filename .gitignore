@@ -110,7 +110,7 @@ venv.bak/
 **backup
 **analysis
 **data
-*.py
+*.pyc
 **./ipynb_checkpoints
 *.ipynb
 *.idea
