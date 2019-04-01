@@ -5,5 +5,5 @@ import numpy as np
 
 
 
-def augment(img, labels)
+def augment(images, labels):
     return
