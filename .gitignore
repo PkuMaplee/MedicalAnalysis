@@ -1,4 +1,4 @@
-# Byte-compiled / optimized / DLL files
+#Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
@@ -110,7 +110,7 @@ venv.bak/
 **backup
 **analysis
 **data
-*.pyc
+*.py
 **./ipynb_checkpoints
 *.ipynb
 *.idea
