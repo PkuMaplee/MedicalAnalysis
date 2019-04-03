@@ -5,17 +5,14 @@
 # ==================================================================================================================== #
 #                                                         Data                                                         #
 # ==================================================================================================================== #
-import numpy as np
 import glob
 import os
-import cv2
 from numpy import genfromtxt
 import random
-# from sklearn.model_selection import train_test_split
+import yaml
 
 from utils.utils import *
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 from matplotlib.lines import Line2D
 
 class DataItem(object):
@@ -111,7 +108,7 @@ class DataItem(object):
     def getlabel(self):
         return self.label
 
-    def vis_check(self, save=False):
+    def vis_check(self, save=False, show=False):
         fig = plt.figure(figsize=(10, 8))
         ax = fig.add_subplot(121)
         ax.imshow(self.image, cmap="gray")
@@ -138,7 +135,12 @@ class DataItem(object):
                         interpolation="nearest",
                         transparent=True,
                         bbox_inches="tight")
+        if not show:
+            plt.close()
 
+
+    def readyaml(self, path):
+        # with open()
 
 
 class Data(object):
@@ -153,13 +155,14 @@ class Data(object):
         self.traindata = []
         self.testdata = []
         self.num_samples = None
-        # check if path/to/data/data_clean is founded, if not run:
-        self.readraw()
-        self.cleaning()
-        self.train_test_split()
-        self.savedata()
+        if not os.path.exists(self.path + "_processed"):
+            self.readraw()
+            self.cleaning()
+            self.train_test_split()
+            self.savedata()
         # if found run:
-        # self.readcleandata()
+        else:
+            self.readprocessed()
     
     def readraw(self):
         self.imglist = glob.glob(os.path.join(self.path, "*lat.png"))
@@ -171,6 +174,10 @@ class Data(object):
             self.data.append(Item)
 
         self.num_samples = len(self.data)
+
+    def readprocessed(self):
+        for i in range():
+            item = DataItem()
 
     
     def train_test_split(self):
