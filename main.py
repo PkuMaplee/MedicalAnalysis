@@ -44,7 +44,8 @@ def main(args):
     configs = {
         "path": args.dataset,
         "batchSize": args.batchsize,
-        "imageSize": [args.imgsize, args.imgsize],
+        "height": args.height,
+        "width": args.width,
         "channels": args.channels,
         "display_step": args.display_step,
         "learning_rate": args.learning_rate,
