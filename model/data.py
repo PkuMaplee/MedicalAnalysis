@@ -3,13 +3,15 @@
 
 
 # ==================================================================================================================== #
-#                                                         Data                                                         #
+#                                                      Data Classes                                                    #
 # ==================================================================================================================== #
+
 import glob
 import os
 from numpy import genfromtxt
 import random
 from tqdm import tqdm
+import time
 import yaml
 
 from utils.utils import *
@@ -18,6 +20,10 @@ from matplotlib.lines import Line2D
 
 import warnings
 warnings.filterwarnings("ignore")
+
+# ==================================================================================================================== #
+#                                                       DataItem                                                       #
+# ==================================================================================================================== #
 
 class DataItem(object):
     
@@ -144,17 +150,34 @@ class DataItem(object):
 
 
     def readyaml(self, path):
-        # with open()
-        pass
+        with open(path, "r") as stream:
+            try:
+                yamldata = yaml.load(stream)
+                self.T5 = yamldata["T5"]
+                self.T5_int = yamldata["T5_int"]
+                self.T12 = yamldata["T12"]
+                self.T12_int = yamldata["T12_int"]
+                self.L1 = yamldata["L1"]
+                self.L1_int = yamldata["L1_int"]
+                self.S1 = yamldata["S1"]
+                self.S1_int = yamldata["S1_int"]
+                self.fem_center = yamldata["fem_center"]
+                self.fem_center_int = yamldata["fem_center_int"]
+                self.genelabel()
+                self.index = path.split("/")[-2]
+                self.folder = "/".join(path.split("/")[:3])
+                self.image = cv2.imread(yamldata["image"], 0)
+                assert self.image is not None, "Can Not Find Image : {}".format(yamldata["image"])
+                self.image_label = cv2.imread(yamldata["image_label"])
+                assert self.image_label is not None, "Can Not Find Image Label: {}".format(yamldata["image_label"])
+
+            except yaml.YAMLError as exc:
+                print(exc)
 
 
-
-
-
-
-
-
-
+# ==================================================================================================================== #
+#                                                         Data                                                         #
+# ==================================================================================================================== #
 
 class Data(object):
 
@@ -173,7 +196,6 @@ class Data(object):
             self.cleaning()
             self.train_test_split()
             self.savedata()
-        # if found run:
         else:
             self.readprocessed()
         print(0)
@@ -190,10 +212,22 @@ class Data(object):
         self.num_samples = len(self.data)
 
     def readprocessed(self):
-        # for i in range():
-        #     item = DataItem()
-        pass
+        trainlist = glob.glob(os.path.join(self.path + "_processed", "train", "*", "label.yaml"))
+        testlist = glob.glob(os.path.join(self.path + "_processed", "test", "*", "label.yaml"))
+        self.num_train = len(trainlist)
+        self.num_test = len(testlist)
+        for i in range(self.num_train):
+            item = DataItem()
+            item.readyaml(path=trainlist[i])
+            self.traindata.append(item)
 
+        for i in range(self.num_test):
+            item = DataItem()
+            item.readyaml(path=testlist[i])
+            self.testdata.append(item)
+
+        self.num_samples = self.num_train + self.num_test
+        self.data = self.traindata + self.testdata
     
     def train_test_split(self):
         random.seed(self.random_seed)
@@ -235,7 +269,7 @@ class Data(object):
         #     os.makedirs(os.path.join(self.path + "_processed", "train"))
         # if not os.path.exists(os.path.join(self.path + "_processed", "test")):
         #     os.makedirs(os.path.join(self.path + "_processed", "test"))
-
+        print("Processing the Train Data ......")
         for i in tqdm(range(self.num_train)):
             item = self.traindata[i]
             savefolder = os.path.join(self.path + "_processed", "train", str(item.index))
@@ -255,7 +289,8 @@ class Data(object):
             with open(os.path.join(savefolder, "label.yaml"), "w") as outfile:
                 yaml.dump(data, outfile, default_flow_style=False)
 
-
+        time.sleep(1)
+        print("Processing the Test Data ......")
         for i in tqdm(range(self.num_test)):
             item = self.testdata[i]
             savefolder = os.path.join(self.path + "_processed", "test", str(item.index))
