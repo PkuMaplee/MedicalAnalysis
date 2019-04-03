@@ -9,11 +9,15 @@ import glob
 import os
 from numpy import genfromtxt
 import random
+from tqdm import tqdm
 import yaml
 
 from utils.utils import *
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+
+import warnings
+warnings.filterwarnings("ignore")
 
 class DataItem(object):
     
@@ -108,7 +112,7 @@ class DataItem(object):
     def getlabel(self):
         return self.label
 
-    def vis_check(self, save=False, show=False):
+    def vis_check(self, save=False, savepath="data/check", show=False):
         fig = plt.figure(figsize=(10, 8))
         ax = fig.add_subplot(121)
         ax.imshow(self.image, cmap="gray")
@@ -120,7 +124,7 @@ class DataItem(object):
         ax.add_line(lineT12)
         ax.add_line(lineL1)
         ax.add_line(lineS1)
-        ax.scatter(self.fem_center[0], self.fem_center[1], c="green", marker="X", s=60, label="femoral")
+        ax.scatter(self.fem_center_int[0], self.fem_center_int[1], c="green", marker="X", s=60, label="femoral")
         plt.title("Check With Labels")
         ax.legend()
 
@@ -129,9 +133,9 @@ class DataItem(object):
         plt.title("Image With Labels")
 
         if save:
-            if not os.path.exists("data/check"):
-                os.makedirs("data/check")
-            plt.savefig(os.path.join("data/check", str(self.index) + "_check.jpg"),
+            if not os.path.exists(savepath):
+                os.makedirs(savepath)
+            plt.savefig(os.path.join(savepath, str(self.index) + "_check.jpg"),
                         interpolation="nearest",
                         transparent=True,
                         bbox_inches="tight")
@@ -141,6 +145,15 @@ class DataItem(object):
 
     def readyaml(self, path):
         # with open()
+        pass
+
+
+
+
+
+
+
+
 
 
 class Data(object):
@@ -163,6 +176,7 @@ class Data(object):
         # if found run:
         else:
             self.readprocessed()
+        print(0)
     
     def readraw(self):
         self.imglist = glob.glob(os.path.join(self.path, "*lat.png"))
@@ -176,8 +190,9 @@ class Data(object):
         self.num_samples = len(self.data)
 
     def readprocessed(self):
-        for i in range():
-            item = DataItem()
+        # for i in range():
+        #     item = DataItem()
+        pass
 
     
     def train_test_split(self):
@@ -207,7 +222,7 @@ class Data(object):
             if img_h > height:
                 item = vertical_topcrop(item, height)
             item = standard_resize(item, [height, width])
-            item.vis_check(save=True)
+            # item.vis_check(save=True)
             self.data[i] = item
 
     
@@ -216,4 +231,47 @@ class Data(object):
         Store the augmented train data and test data to a local repository
         :return:
         '''
-        pass
+        # if not os.path.exists(os.path.join(self.path + "_processed", "train")):
+        #     os.makedirs(os.path.join(self.path + "_processed", "train"))
+        # if not os.path.exists(os.path.join(self.path + "_processed", "test")):
+        #     os.makedirs(os.path.join(self.path + "_processed", "test"))
+
+        for i in tqdm(range(self.num_train)):
+            item = self.traindata[i]
+            savefolder = os.path.join(self.path + "_processed", "train", str(item.index))
+            if not os.path.exists(savefolder):
+                os.makedirs(savefolder)
+            img = item.image
+            img_label = item.image_label
+            cv2.imwrite(os.path.join(savefolder, str(item.index)+".jpg"), img)
+            cv2.imwrite(os.path.join(savefolder, str(item.index) + "_label.jpg"), img_label)
+            item.vis_check(save=True, savepath=savefolder, show=False)
+
+            data = {"T5": item.T5, "T12": item.T12, "L1": item.L1, "S1": item.S1, "fem_center": item.fem_center,
+                    "T5_int": item.T5_int, "T12_int": item.T12_int, "L1_int": item.L1_int, "S1_int": item.S1_int,
+                    "fem_center_int": item.fem_center_int, "image": os.path.join(savefolder, str(item.index)+".jpg"),
+                    "image_label": os.path.join(savefolder, str(item.index) + "_label.jpg")}
+
+            with open(os.path.join(savefolder, "label.yaml"), "w") as outfile:
+                yaml.dump(data, outfile, default_flow_style=False)
+
+
+        for i in tqdm(range(self.num_test)):
+            item = self.testdata[i]
+            savefolder = os.path.join(self.path + "_processed", "test", str(item.index))
+            if not os.path.exists(savefolder):
+                os.makedirs(savefolder)
+            img = item.image
+            img_label = item.image_label
+            cv2.imwrite(os.path.join(savefolder, str(item.index)+".jpg"), img)
+            cv2.imwrite(os.path.join(savefolder, str(item.index) + "_label.jpg"), img_label)
+            item.vis_check(save=True, savepath=savefolder, show=False)
+
+            data = {"T5": item.T5, "T12": item.T12, "L1": item.L1, "S1": item.S1, "fem_center": item.fem_center,
+                    "T5_int": item.T5_int, "T12_int": item.T12_int, "L1_int": item.L1_int, "S1_int": item.S1_int,
+                    "fem_center_int": item.fem_center_int, "image": os.path.join(savefolder, str(item.index)+".jpg"),
+                    "image_label": os.path.join(savefolder, str(item.index) + "_label.jpg")}
+
+            with open(os.path.join(savefolder, "label.yaml"), "w") as outfile:
+                yaml.dump(data, outfile, default_flow_style=False)
+
