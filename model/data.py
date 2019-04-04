@@ -174,6 +174,9 @@ class DataItem(object):
             except yaml.YAMLError as exc:
                 print(exc)
 
+    def augment(self):
+        return
+
 
 # ==================================================================================================================== #
 #                                                         Data                                                         #

@@ -25,7 +25,7 @@ parser.add_argument("--channels", type=int, default=1, help="The number of input
 parser.add_argument("--batchsize", type=int, default=128, help="The number of input images in each batch")
 parser.add_argument("--height", type=int, default=860, help="The size of input images")
 parser.add_argument("--width", type=int, default=360, help="The size of input images")
-parser.add_argument("--learning_rate", type=float, default=0.000002, help="The learning rate for training")
+parser.add_argument("--learning_rate", type=float, default=0.00001, help="The learning rate for training")
 parser.add_argument("--learning_rate_step", type=int, default=50)
 parser.add_argument("--num_epoch", type=int, default=100)
 parser.add_argument("--display_step", type=int, default=1)
@@ -55,6 +55,7 @@ def main(args):
         "weights_folder": args.weights_folder
     }
 
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0, 6"
     data = Data("data/Lat1-100", configs=configs)
     # ====== Model definition ====== #
     # model = Classifier(args.model_type, configs=configs)
