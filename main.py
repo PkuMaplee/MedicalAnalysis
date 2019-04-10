@@ -19,7 +19,7 @@ import argparse
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--dataset", default="data/Lat1-100", help="Path to the dataset")
+parser.add_argument("--dataset", default="data/Lat001-300", help="Path to the dataset")
 parser.add_argument("--model_type", default="default", help="Choose the model")
 parser.add_argument("--channels", type=int, default=1, help="The number of input image channels")
 parser.add_argument("--batchsize", type=int, default=128, help="The number of input images in each batch")
@@ -55,7 +55,7 @@ def main(args):
         "weights_folder": args.weights_folder
     }
 
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0, 6"
+    # os.environ["CUDA_VISIBLE_DEVICES"] = "0, 6"
     data = Data("data/Lat1-100", configs=configs)
     # ====== Model definition ====== #
     # model = Classifier(args.model_type, configs=configs)
