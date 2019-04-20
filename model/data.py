@@ -184,9 +184,9 @@ class DataItem(object):
 
 class Data(object):
 
-    def __init__(self, path="", configs=None, train_test_split_rate=0.3, random_seed=36, savepath="augment"):
-        self.path = path
+    def __init__(self, configs=None, train_test_split_rate=0.3, random_seed=36, savepath="augment"):
         self.configs = configs
+        self.path = configs["path"]
         self.savepath = savepath
         self.rate = train_test_split_rate
         self.random_seed = random_seed
@@ -201,7 +201,6 @@ class Data(object):
             self.savedata()
         else:
             self.readprocessed()
-        print(0)
     
     def readraw(self):
         self.imglist = glob.glob(os.path.join(self.path, "*lat.png"))
@@ -249,8 +248,8 @@ class Data(object):
         [1]. Transform the training image to the consistant size (crop and resize).
         :return: 
         '''
-        height = self.configs["height"]
-        width = self.configs["width"]
+        height = self.configs["imageHeight"]
+        width = self.configs["imageWidth"]
         for i in range(self.num_samples):
             item = self.data[i]
             img_h, img_w = item.image.shape[:2]
