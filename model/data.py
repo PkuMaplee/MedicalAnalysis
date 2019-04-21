@@ -347,7 +347,7 @@ class Data(object):
             image = image / image.max()
             batchimgs[i] = np.expand_dims(image, axis=-1)
             label = data[indices[i]].label.astype(np.float32)
-            label = self.normalize_label(label)
+            # label = self.normalize_label(label)
             batchlabels[i] = label
 
         return batchimgs, batchlabels
