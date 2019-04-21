@@ -24,15 +24,15 @@ parser.add_argument("--dataset", default="data/Lat001-300", help="Path to the da
 parser.add_argument("--model_type", default="ScolioNet", help="Choose the model")
 parser.add_argument("--channels", type=int, default=1, help="The number of input image channels")
 parser.add_argument("--num_landmarks", type=int, default=9, help="The number of landmarks needed to be predicted")
-parser.add_argument("--batchsize", type=int, default=128, help="The number of input images in each batch")
-parser.add_argument("--imageHeight", type=int, default=860, help="The size of input images")
+parser.add_argument("--batchsize", type=int, default=7, help="The number of input images in each batch")
+parser.add_argument("--imageHeight", type=int, default=840, help="The size of input images")
 parser.add_argument("--imageWidth", type=int, default=360, help="The size of input images")
-parser.add_argument("--learning_rate", type=float, default=0.00001, help="The learning rate for training")
+parser.add_argument("--learning_rate", type=float, default=0.0001, help="The learning rate for training")
 parser.add_argument("--learning_rate_step", type=int, default=50)
 parser.add_argument("--num_epoch", type=int, default=100)
 parser.add_argument("--display_step", type=int, default=1)
 parser.add_argument("--save_step", type=int, default=5)
-parser.add_argument("--select_gpu", default='3')
+parser.add_argument("--select_gpu", default='0')
 parser.add_argument("--results_folder", default="results")
 parser.add_argument("--weights_folder", default="weights")
 
@@ -61,13 +61,13 @@ def main(args):
     os.environ["CUDA_VISIBLE_DEVICES"] = "7"
 
     # ====== Read Data and Preprocess the data automatically ====== #
-    scoliosis = Data(configs=configs)
+    scoliodata = Data(configs=configs)
 
     # ====== Model definition ====== #
-    model = Detector(data=scoliosis, model_type=args.model_type, configs=configs, verbose=True)
+    model = Detector(data=scoliodata, model_type=args.model_type, configs=configs, verbose=True)
 
     # ====== Start training ====== #
-    # model.train(num_epoch=args.num_epoch, save_epoch=args.save_step, continues=True)
+    model.train(num_epoch=args.num_epoch, save_epoch=args.save_step, continues=True)
 
     # ====== Start testing ====== #
     # model.valid()

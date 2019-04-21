@@ -187,6 +187,7 @@ class Data(object):
     def __init__(self, configs=None, train_test_split_rate=0.3, random_seed=36, savepath="augment"):
         self.configs = configs
         self.path = configs["path"]
+        self.batchsize = configs["batchSize"]
         self.savepath = savepath
         self.rate = train_test_split_rate
         self.random_seed = random_seed
@@ -240,7 +241,9 @@ class Data(object):
 
         self.num_train = len(self.traindata)
         self.num_test = len(self.testdata)
-        return
+
+    def shuffle(self):
+        random.shuffle(self.traindata)
     
     def cleaning(self):
         '''
@@ -312,3 +315,66 @@ class Data(object):
             with open(os.path.join(savefolder, "label.yaml"), "w") as outfile:
                 yaml.dump(data, outfile, default_flow_style=False)
 
+    def normalize_label(self, label):
+        label = label.reshape(-1, self.configs["num_landmarks"], 2)
+        label = label / [self.configs["imageWidth"], self.configs["imageHeight"]]
+        label = label.reshape(-1)
+        return label
+
+    def unnormalize_label(self, normlabel):
+        normlabel = normlabel.reshape(-1, self.configs["num_landmarks"], 2)
+        normlabel = normlabel * [self.configs["imageWidth"], self.configs["imageHeight"]]
+        normlabel = normlabel.reshape(-1)
+        return normlabel
+
+    def load_batch(self, indices, mode="train"):
+        b = self.batchsize
+        h = self.configs["imageHeight"]
+        w = self.configs["imageWidth"]
+        c = self.configs["channels"]
+
+        batchimgs = np.zeros([b, h, w, c], dtype=np.float32)
+        batchlabels = np.zeros([b, self.configs["num_landmarks"] * 2], dtype=np.float32)
+
+        if mode.lower() == "train":
+            data = self.traindata
+        elif mode.lower() == "test":
+            data = self.testdata
+        else:
+            pass
+        for i in range(len(indices)):
+            image = data[indices[i]].image.astype(np.float32)
+            image = image / image.max()
+            batchimgs[i] = np.expand_dims(image, axis=-1)
+            label = data[indices[i]].label.astype(np.float32)
+            label = self.normalize_label(label)
+            batchlabels[i] = label
+
+        return batchimgs, batchlabels
+
+    def next_batch(self):
+        pass
+
+    def get_train_batch(self, iteration=0):
+        start = self.batchsize * iteration % self.num_train
+        end = self.batchsize * (iteration + 1) % self.num_train
+        indices = range(self.num_train)
+        if start >= end:
+            selects = indices[start:] + indices[:end]
+        else:
+            selects = indices[start:end]
+
+        batch_images, batch_labels = self.load_batch(indices=selects, mode="train")
+        return batch_images, batch_labels
+
+    def get_test_batch(self, iteration=0):
+        start = self.batchsize * iteration % self.num_test
+        end = self.batchsize * (iteration + 1) % self.num_test
+        indices = range(self.num_test)
+        if start >= end:
+            selects = indices[start:] + indices[:end]
+        else:
+            selects = indices[start:end]
+
+        batch_images, batch_labels = self.load_batch(indices=selects, mode="test")
+        return batch_images, batch_labels

@@ -52,3 +52,7 @@ def standard_resize(item, standard):
     item.fem_center *= [x_scale, y_scale]
     item.update()
     return item
+
+
+def denormalize_label():
+    pass
