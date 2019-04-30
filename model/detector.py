@@ -2,17 +2,11 @@
 # -*- coding: utf-8 -*-
 
 
-import cv2
-import re
-import tensorflow as tf
-import tensorflow_probability as tfp
-from utils.utils import *
 from model.data import *
 from model.scolionet import *
 import matplotlib.pyplot as plt
 
 from tool.log_config import *
-
 
 # log_config()
 # tf.logging.set_verbosity(tf.logging.INFO)
@@ -23,6 +17,7 @@ class Detector(object):
     def __init__(self, data, model_type="", configs=None, verbose=True):
         self.data = data
         self.configs = configs
+        self.batchsize = self.configs["batchSize"]
         self.model_type = model_type.lower()
         self.model = None
 
@@ -67,14 +62,30 @@ class Detector(object):
         self.sess.run(init)
 
         epoch_start = 0
-        # if continues:
-        #     self.saver.restore(self.sess, os.path.join(self.weights_folder, os.path.join(self.model_type, model_path)))
-        #     _, epoch_start = self.read_state()
-        #     epoch_start += 1
+        if continues:
+            self.saver.restore(self.sess, os.path.join(self.weights_folder, os.path.join(self.model_type, model_path)))
+            # _, epoch_start = self.read_state()
+            # epoch_start += 1
+
+        num_trainiter = self.data.num_train / self.batchsize
+        num_testiter = self.data.num_test / self.batchsize
 
         for epoch in range(epoch_start, num_epoch):
             random.shuffle(self.data.traindata)
-            for iteration in range(30):
+
+            for iteration in range(num_testiter):
+                batchimgs, batchlabels = self.data.get_test_batch(iteration=iteration)
+                loss, predictions = self.sess.run([self.model.loss, self.model.predictions],
+                                                  feed_dict={self.inputs: batchimgs,
+                                                             self.landmarks: batchlabels,
+                                                             self.is_training: False,
+                                                             self.lr: lr})
+                string = "[Epoch {:05d}][Iteration {:05d}][TEST]\tloss: {:.6f}".format(epoch, iteration, loss)
+                print(string)
+
+
+
+            for iteration in range(num_trainiter):
 
                 batchimgs, batchlabels = self.data.get_train_batch(iteration=iteration)
                 _, loss, predictions = self.sess.run([train_op, self.model.loss, self.model.predictions],
@@ -85,16 +96,11 @@ class Detector(object):
                 string = "[Epoch {:05d}][Iteration {:05d}][TRAIN]\tloss: {:.6f}".format(epoch, iteration, loss)
                 print(string)
 
-            for iteration in range(13):
-                batchimgs, batchlabels = self.data.get_train_batch(iteration=iteration)
-                loss, predictions = self.sess.run([self.model.loss, self.model.predictions],
-                                                  feed_dict={self.inputs: batchimgs,
-                                                             self.landmarks: batchlabels,
-                                                             self.is_training: True,
-                                                             self.lr: lr})
-                string = "[Epoch {:05d}][Iteration {:05d}][TEST]\tloss: {:.6f}".format(epoch, iteration, loss)
-                print(string)
 
+
+
+            # if epoch % save_epoch == 0 and epoch != 0:
+            #     tf.saver.save(tf.sess, os.path.join())
 
 
 

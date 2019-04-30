@@ -34,11 +34,11 @@ class ScolioNet(object):
             self.midoutputs.append(x)
             with tf.variable_scope("residual_block1_1"):
                 x = BatchNorm(x, name="batchnorm", training=is_training, verbose=verbose)
-                x = LeakyReLU(x, name="relu", verbose=verbose)
+                x = LeakyReLU(x, name="leakyrelu", verbose=verbose)
                 x = Conv2d(x, out_channels=64, kernel_size=3, strides=1, padding="SAME", name="conv", verbose=verbose)
             with tf.variable_scope("residual_block1_2"):
                 x = BatchNorm(x, name="batchnorm", training=is_training, verbose=verbose)
-                x = LeakyReLU(x, name="relu", verbose=verbose)
+                x = LeakyReLU(x, name="leakyrelu", verbose=verbose)
                 x = Conv2d(x, out_channels=64, kernel_size=3, strides=1, padding="SAME", name="conv", verbose=verbose)
             x = x + self.in_block1
             self.midoutputs.append(x)
@@ -47,16 +47,16 @@ class ScolioNet(object):
 
             with tf.variable_scope("conv2d_1_2"):
                 x = Conv2d(x, out_channels=128, kernel_size=3, strides=1, padding="SAME", name="conv", verbose=verbose)
-                x = LeakyReLU(x, name="relu", verbose=verbose)
+                x = LeakyReLU(x, name="leakyrelu", verbose=verbose)
             self.in_block2 = x
             self.midoutputs.append(x)
             with tf.variable_scope("residual_block2_1"):
                 x = BatchNorm(x, name="batchnorm", training=is_training, verbose=verbose)
-                x = LeakyReLU(x, name="relu", verbose=verbose)
+                x = LeakyReLU(x, name="leakyrelu", verbose=verbose)
                 x = Conv2d(x, out_channels=128, kernel_size=3, strides=1, padding="SAME", name="conv", verbose=verbose)
             with tf.variable_scope("residual_block2_2"):
                 x = BatchNorm(x, name="batchnorm", training=is_training, verbose=verbose)
-                x = LeakyReLU(x, name="relu", verbose=verbose)
+                x = LeakyReLU(x, name="leakyrelu", verbose=verbose)
                 x = Conv2d(x, out_channels=128, kernel_size=3, strides=1, padding="SAME", name="conv", verbose=verbose)
             x = x + self.in_block2
             self.midoutputs.append(x)
@@ -65,16 +65,16 @@ class ScolioNet(object):
 
             with tf.variable_scope("conv2d_2_3"):
                 x = Conv2d(x, out_channels=256, kernel_size=3, strides=1, padding="SAME", name="conv", verbose=verbose)
-                x = LeakyReLU(x, name="relu", verbose=verbose)
+                x = LeakyReLU(x, name="leakyrelu", verbose=verbose)
             self.in_block3 = x
             self.midoutputs.append(x)
             with tf.variable_scope("residual_block3_1"):
                 x = BatchNorm(x, name="batchnorm", training=is_training, verbose=verbose)
-                x = LeakyReLU(x, name="relu", verbose=verbose)
+                x = LeakyReLU(x, name="leakyrelu", verbose=verbose)
                 x = Conv2d(x, out_channels=256, kernel_size=3, strides=1, padding="SAME", name="conv", verbose=verbose)
             with tf.variable_scope("residual_block3_2"):
                 x = BatchNorm(x, name="batchnorm", training=is_training, verbose=verbose)
-                x = LeakyReLU(x, name="relu", verbose=verbose)
+                x = LeakyReLU(x, name="leakyrelu", verbose=verbose)
                 x = Conv2d(x, out_channels=256, kernel_size=3, strides=1, padding="SAME", name="conv", verbose=verbose)
             x = x + self.in_block3
             self.midoutputs.append(x)
@@ -88,11 +88,11 @@ class ScolioNet(object):
             self.midoutputs.append(x)
             with tf.variable_scope("residual_block4_1"):
                 x = BatchNorm(x, name="batchnorm", training=is_training, verbose=verbose)
-                x = LeakyReLU(x, name="relu", verbose=verbose)
+                x = LeakyReLU(x, name="leakyrelu", verbose=verbose)
                 x = Conv2d(x, out_channels=512, kernel_size=3, strides=1, padding="SAME", name="conv", verbose=verbose)
             with tf.variable_scope("residual_block4_2"):
                 x = BatchNorm(x, name="batchnorm", training=is_training, verbose=verbose)
-                x = LeakyReLU(x, name="relu", verbose=verbose)
+                x = LeakyReLU(x, name="leakyrelu", verbose=verbose)
                 x = Conv2d(x, out_channels=512, kernel_size=3, strides=1, padding="SAME", name="conv", verbose=verbose)
             x = x + self.in_block4
             self.midoutputs.append(x)
@@ -100,18 +100,18 @@ class ScolioNet(object):
                 x = MaxPooling2d(x, name="maxpooling", pool_size=2, strides=2, padding="SAME", verbose=verbose)
             with tf.variable_scope("conv2d_4"):
                 x = Conv2d(x, out_channels=256, kernel_size=3, strides=1, padding="SAME", name="conv", verbose=verbose)
-                x = LeakyReLU(x, name="relu", verbose=verbose)
+                x = LeakyReLU(x, name="leakyrelu", verbose=verbose)
             self.midoutputs.append(x)
             # ======== regression components ======== #
             with tf.variable_scope("flatten"):
                 x = Flatten(x, name="flatten", verbose=verbose)
             with tf.variable_scope("dense_1"):
                 x = Dense(x, units=256, name="dense", verbose=verbose)
-                x = LeakyReLU(x, name="relu", verbose=verbose)
+                x = LeakyReLU(x, name="leakyrelu", verbose=verbose)
             self.midoutputs.append(x)
             with tf.variable_scope("dense_2"):
                 x = Dense(x, units=self.n_landmarks, name="dense", verbose=verbose)
-                # x = LeakyReLU(x, name="relu", verbose=verbose)
+                # x = LeakyReLU(x, name="leakyrelu", verbose=verbose)
                 # x = Softmax(x, name="softmax", verbose=verbose)
 
         self.var_list = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="scolionet")

@@ -1,12 +1,25 @@
 import numpy as np
 import cv2
+import matplotlib.pyplot as plt
+
+# def augment(images, labels):
+#     return
 
 
-
-
-
-def augment(images, labels):
-    return
+def preresize(item, standard):
+    standh, standw = standard
+    ori_h, ori_w = item.image.shape[:2]
+    y_scale = np.float32(standh+100) / np.float(ori_h)
+    x_scale = np.float32(standw+60) / np.float(ori_w)
+    item.image = cv2.resize(item.image, (standw+60, standh+100))
+    item.image_label = cv2.resize(item.image_label, (standw+60, standh+100))
+    item.T5 *= [x_scale, y_scale]
+    item.T12 *= [x_scale, y_scale]
+    item.L1 *= [x_scale, y_scale]
+    item.S1 *= [x_scale, y_scale]
+    item.fem_center *= [x_scale, y_scale]
+    item.update()
+    return item
 
 
 def horizon_centercrop(item, width):
@@ -24,6 +37,7 @@ def horizon_centercrop(item, width):
         item.update()
     return item
 
+
 def vertical_topcrop(item, height):
     h, w = item.image.shape[:2]
     if h > height:
@@ -37,6 +51,7 @@ def vertical_topcrop(item, height):
         item.fem_center[1] = item.fem_center[1] - start_h
         item.update()
     return item
+
 
 def standard_resize(item, standard):
     standh, standw = standard

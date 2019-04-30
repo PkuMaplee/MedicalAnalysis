@@ -153,16 +153,16 @@ class DataItem(object):
         with open(path, "r") as stream:
             try:
                 yamldata = yaml.load(stream)
-                self.T5 = yamldata["T5"]
-                self.T5_int = yamldata["T5_int"]
-                self.T12 = yamldata["T12"]
-                self.T12_int = yamldata["T12_int"]
-                self.L1 = yamldata["L1"]
-                self.L1_int = yamldata["L1_int"]
-                self.S1 = yamldata["S1"]
-                self.S1_int = yamldata["S1_int"]
-                self.fem_center = yamldata["fem_center"]
-                self.fem_center_int = yamldata["fem_center_int"]
+                self.T5 = np.array([np.float32(x) for x in yamldata["T5"].split(",")]).reshape(2, 2)
+                self.T5_int = np.array([np.int32(x) for x in yamldata["T5_int"].split(",")]).reshape(2, 2)
+                self.T12 = np.array([np.float32(x) for x in yamldata["T12"].split(",")]).reshape(2, 2)
+                self.T12_int = np.array([np.int32(x) for x in yamldata["T12_int"].split(",")]).reshape(2, 2)
+                self.L1 = np.array([np.float32(x) for x in yamldata["L1"].split(",")]).reshape(2, 2)
+                self.L1_int = np.array([np.int32(x) for x in yamldata["L1_int"].split(",")]).reshape(2, 2)
+                self.S1 = np.array([np.float32(x) for x in yamldata["S1"].split(",")]).reshape(2, 2)
+                self.S1_int = np.array([np.int32(x) for x in yamldata["S1_int"].split(",")]).reshape(2, 2)
+                self.fem_center = np.array([np.float32(x) for x in yamldata["fem_center"].split(",")])
+                self.fem_center_int = np.array([np.int32(x) for x in yamldata["fem_center_int"].split(",")])
                 self.genelabel()
                 self.index = path.split("/")[-2]
                 self.folder = "/".join(path.split("/")[:3])
@@ -184,7 +184,7 @@ class DataItem(object):
 
 class Data(object):
 
-    def __init__(self, configs=None, train_test_split_rate=0.3, random_seed=36, savepath="augment"):
+    def __init__(self, configs=None, train_test_split_rate=0.285, random_seed=36, savepath="augment"):
         self.configs = configs
         self.path = configs["path"]
         self.batchsize = configs["batchSize"]
@@ -219,14 +219,18 @@ class Data(object):
         testlist = glob.glob(os.path.join(self.path + "_processed", "test", "*", "label.yaml"))
         self.num_train = len(trainlist)
         self.num_test = len(testlist)
-        for i in range(self.num_train):
+        print("Loading the training data ...")
+        for i in tqdm(range(self.num_train)):
             item = DataItem()
             item.readyaml(path=trainlist[i])
+            # item.vis_check(save=False, show=True)
             self.traindata.append(item)
 
-        for i in range(self.num_test):
+        print("Loading the testing data ...")
+        for i in tqdm(range(self.num_test)):
             item = DataItem()
             item.readyaml(path=testlist[i])
+            # item.vis_check(save=False, show=True)
             self.testdata.append(item)
 
         self.num_samples = self.num_train + self.num_test
@@ -256,15 +260,18 @@ class Data(object):
         for i in range(self.num_samples):
             item = self.data[i]
             img_h, img_w = item.image.shape[:2]
+
+            if img_w >= 1200 and img_h >= 3000:
+                item = preresize(item, [height, width])
+                img_h, img_w = item.image.shape[:2]
+
             if img_w > width:
                 item = horizon_centercrop(item, width)
             if img_h > height:
                 item = vertical_topcrop(item, height)
             item = standard_resize(item, [height, width])
-            # item.vis_check(save=True)
             self.data[i] = item
 
-    
     def savedata(self):
         '''
         Store the augmented train data and test data to a local repository
@@ -285,10 +292,14 @@ class Data(object):
             cv2.imwrite(os.path.join(savefolder, str(item.index)+".jpg"), img)
             cv2.imwrite(os.path.join(savefolder, str(item.index) + "_label.jpg"), img_label)
             item.vis_check(save=True, savepath=savefolder, show=False)
+            item.vis_check(save=True, show=False)
 
-            data = {"T5": item.T5, "T12": item.T12, "L1": item.L1, "S1": item.S1, "fem_center": item.fem_center,
-                    "T5_int": item.T5_int, "T12_int": item.T12_int, "L1_int": item.L1_int, "S1_int": item.S1_int,
-                    "fem_center_int": item.fem_center_int, "image": os.path.join(savefolder, str(item.index)+".jpg"),
+            data = {"T5": self.array2str(item.T5), "T12": self.array2str(item.T12), "L1": self.array2str(item.L1),
+                    "S1": self.array2str(item.S1), "fem_center": self.array2str(item.fem_center),
+                    "T5_int": self.array2str(item.T5_int), "T12_int": self.array2str(item.T12_int),
+                    "L1_int": self.array2str(item.L1_int), "S1_int": self.array2str(item.S1_int),
+                    "fem_center_int": self.array2str(item.fem_center_int),
+                    "image": os.path.join(savefolder, str(item.index)+".jpg"),
                     "image_label": os.path.join(savefolder, str(item.index) + "_label.jpg")}
 
             with open(os.path.join(savefolder, "label.yaml"), "w") as outfile:
@@ -306,14 +317,23 @@ class Data(object):
             cv2.imwrite(os.path.join(savefolder, str(item.index)+".jpg"), img)
             cv2.imwrite(os.path.join(savefolder, str(item.index) + "_label.jpg"), img_label)
             item.vis_check(save=True, savepath=savefolder, show=False)
+            item.vis_check(save=True, show=False)
 
-            data = {"T5": item.T5, "T12": item.T12, "L1": item.L1, "S1": item.S1, "fem_center": item.fem_center,
-                    "T5_int": item.T5_int, "T12_int": item.T12_int, "L1_int": item.L1_int, "S1_int": item.S1_int,
-                    "fem_center_int": item.fem_center_int, "image": os.path.join(savefolder, str(item.index)+".jpg"),
+            data = {"T5": self.array2str(item.T5), "T12": self.array2str(item.T12), "L1": self.array2str(item.L1),
+                    "S1": self.array2str(item.S1), "fem_center": self.array2str(item.fem_center),
+                    "T5_int": self.array2str(item.T5_int), "T12_int": self.array2str(item.T12_int),
+                    "L1_int": self.array2str(item.L1_int), "S1_int": self.array2str(item.S1_int),
+                    "fem_center_int": self.array2str(item.fem_center_int),
+                    "image": os.path.join(savefolder, str(item.index)+".jpg"),
                     "image_label": os.path.join(savefolder, str(item.index) + "_label.jpg")}
 
             with open(os.path.join(savefolder, "label.yaml"), "w") as outfile:
                 yaml.dump(data, outfile, default_flow_style=False)
+
+    def array2str(self, array):
+        array = array.reshape(-1)
+        arraystr = ",".join(str(x) for x in array)
+        return arraystr
 
     def normalize_label(self, label):
         label = label.reshape(-1, self.configs["num_landmarks"], 2)
@@ -347,7 +367,7 @@ class Data(object):
             image = image / image.max()
             batchimgs[i] = np.expand_dims(image, axis=-1)
             label = data[indices[i]].label.astype(np.float32)
-            # label = self.normalize_label(label)
+            label = self.normalize_label(label)
             batchlabels[i] = label
 
         return batchimgs, batchlabels
